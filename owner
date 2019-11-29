@@ -1,0 +1,147 @@
+package dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import pojo.Book;
+import test.Users;
+import utils.DBUtils;
+
+public class OwnersDao 
+{
+		private Connection connection;
+		private PreparedStatement updatePassword;
+		private PreparedStatement updateProfile;
+		private PreparedStatement selectbookCategory;
+		private PreparedStatement selectFees;
+		private PreparedStatement selectFine;
+		private PreparedStatement selectbookAvailabilty;
+		private PreparedStatement selectbookategory;
+		private PreparedStatement updaterole;
+		private PreparedStatement selectUser;
+
+		public void UsersDao() throws Exception {
+			
+			this.connection = DBUtils.getConnection();
+			this.updaterole=connection.prepareStatement("update users set role=? where ID=?");
+			this.updatePassword=connection.prepareStatement("update users set passwrd=? where ID=?");
+			this.updateProfile=connection.prepareStatement("update users set email=?,mobile=? where ID=?");
+			this.selectFees=connection.prepareStatement("select amount from payments");//fees report
+			this.selectFine=connection.prepareStatement("select fine_amount from issuerecord");//fine reoport
+			this.selectbookCategory=connection.prepareStatement("select subject,count(distinct(subject)) from books");
+			this.selectbookAvailabilty=connection.prepareStatement("select status from copies where bookid=?");
+			this.selectUser=connection.prepareStatement("select * from users");
+		}
+		/*public List<Users> searchSignIn(Users user) throws SQLException
+		{
+			this.selectStatement.setString(1, user.getEmail());
+			this.selectStatement.setString(2, user.getPasswd());
+			
+			List<Users> userList = new ArrayList<>();
+			ResultSet rs = this.selectStatement.executeQuery();	
+			while(rs.next())
+			{
+				Users user2 = new Users(rs.getString(1));
+				userList.add(user2);
+			}
+			return userList;			
+		}*/
+		public int updaterole(String role,int id) throws Exception
+		{
+			this.updaterole.setString(1,role);
+			this.updaterole.setInt(2,id);
+			return updaterole.executeUpdate();
+		}
+		public int updatePassword(String pass,int id) throws Exception
+		{
+			this.updatePassword.setString(1,pass);
+			this.updatePassword.setInt(2,id);
+			return updatePassword.executeUpdate();
+		}
+		public int updateProfile(String email,String mobile,int id) throws Exception
+		{
+			this.updateProfile.setString(1,email);
+			this.updateProfile.setString(2,mobile);
+			this.updateProfile.setInt(3,id);
+			return updateProfile.executeUpdate();
+		}
+		public List<Users> getUsers()throws Exception
+		{
+			List<Users> user=new ArrayList<>();
+			try(ResultSet rs=selectUser.executeQuery())
+			{
+				while(rs.next())
+				{
+					Users u=new Users(rs.getInt(1),rs.getString(2),rs.getString(3),rs.getString(4),rs.getString(5),rs.getString(6));
+					user.add(u);
+				}
+				
+			}
+			return user;
+		}
+		public List<Payments> getFees()throws Exception
+		{
+			List<Payments> payment=new ArrayList<>();
+			try(ResultSet rs=selectFees.executeQuery())
+			{
+				while(rs.next())
+				{
+					Payments p=new Payments(rs.getFloat(3));
+					payment.add(p);
+				}
+				
+			}
+			return payment;
+		}
+		public List<Issuerecord> getFine()throws Exception
+		{
+			List<Issuerecord> payment=new ArrayList<>();
+			try(ResultSet rs=selectFine.executeQuery())
+			{
+				while(rs.next())
+				{
+					Issuerecord i=new Issuerecord(rs.getFloat(7));
+					payment.add(i);
+				}
+				
+			}
+			return payment;
+		}
+		
+		public List<Books> getbookCategory()throws Exception
+		{
+			//input id to check availability of book
+			List<Books> books=new ArrayList<>();
+			try(ResultSet rs=selectbookCategory.executeQuery())
+			{
+				while(rs.next())
+				{
+					Books i=new Books(rs.getString(4));
+					books.add(i);
+				}
+				
+			}
+			return books;
+		}
+		public List<Copies> getavailableBooks()throws Exception
+		{
+			//input id to check availability of book
+			List<Copies> copy=new ArrayList<>();
+			try(ResultSet rs=selectbookAvailabilty.executeQuery())
+			{
+				while(rs.next())
+				{
+					copies c=new Copies(rs.getString(4));
+					copy.add(c);
+				}
+				
+			}
+			return copy;
+		}
+		
+		
+}
